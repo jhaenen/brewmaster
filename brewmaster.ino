@@ -6,7 +6,7 @@
 
 #include <PubSubClient.h>
 
-#define TOGGLE_PIN  2
+#define BURNER_PIN  2
 #define TEMP_PIN    4
 #define mqtt_server "192.168.2.250"
 
@@ -17,6 +17,8 @@ const char* ssid = "WM1";
 const char* password = "WollemaN";
 
 float temperature = 0;
+
+bool burner_on = false;
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature sensors(&oneWire);
@@ -36,7 +38,10 @@ void setup() {
   Serial.begin(115200);                                  //Serial connection
   sensors.begin();
 
-  pinMode(TOGGLE_PIN, OUTPUT);
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+
+  pinMode(BURNER_PIN, OUTPUT);
   
   WiFi.begin(ssid, password);   //WiFi connection
 
@@ -70,13 +75,15 @@ void readSensor(void* parameter) {
     sensors.requestTemperatures(); 
     temperature = sensors.getTempCByIndex(0);
   
-    if(temperature > 30.2) { 
-      digitalWrite(TOGGLE_PIN, LOW);
-      client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'On' }");
-    }
-    if(temperature < 29.8) {
-      digitalWrite(TOGGLE_PIN, HIGH);
+    if(temperature > 30.2 && burner_on) { 
+      digitalWrite(BURNER_PIN, LOW);
+      burner_on = false;
       client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'Off' }");
+    }
+    if(temperature < 29.8 && !burner_on) {
+      digitalWrite(BURNER_PIN, HIGH);
+      burner_on = true;
+      client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'On' }");
     }
 
     vTaskDelay(10 / portTICK_RATE_MS); //Measure temperature every 10ms
@@ -87,9 +94,11 @@ void reconnect() {
   // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
+
     // Create a random client ID
     String clientId = "ESP8266Client-";
     clientId += String(random(0xffff), HEX);
+
     // Attempt to connect
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
