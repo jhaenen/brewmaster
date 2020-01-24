@@ -1,5 +1,4 @@
 #include <WiFi.h>
-#include <WiFiMulti.h>
 #include <HTTPClient.h>
 
 #include <OneWire.h>
@@ -11,7 +10,6 @@
 #define TEMP_PIN    4
 #define mqtt_server "192.168.2.250"
 
-WiFiMulti wifi;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -40,24 +38,14 @@ void setup() {
 
   pinMode(MOC3021_PIN, OUTPUT);
   
-  wifi.addAP(ssid, password);   //WiFi connection
+  WiFi.begin(ssid, password);   //WiFi connection
 
-  Serial.println("Waiting for connection");
-  while (wifi.run() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+  Serial.print("Waiting for connection");
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+    Serial.print(".");
     delay(500);
   }
-  Serial.println("Connected");
-
-  WiFi.begin(ssid, password); // Connect to WiFi
- 
-  // while wifi not connected yet, print '.'
-  // then after it connected, get out of the loop
-  while (WiFi.status() != WL_CONNECTED) {
-     delay(500);
-     Serial.print(".");
-
-   // Verbonden.
-  Serial.println("OK!");
+  Serial.println(" Connected");
   
   // IP adres.
   Serial.print("IP: ");
@@ -65,8 +53,6 @@ void setup() {
  
   xTaskCreate(readSensor, "Read temp", 1024, NULL, 1, NULL);
   xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 2, NULL);
-  
-  }
 } 
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -123,7 +109,7 @@ void reconnect() {
 
 void sendTemperature(void* parameter) {
   while(1) {
-    if(wifi.run()== WL_CONNECTED){   //Check WiFi connection status
+    if(WiFi.status() == WL_CONNECTED){   //Check WiFi connection status
       HTTPClient http;    //Declare object of class HTTPClient
       
       http.begin("http://192.168.2.250:8086/write?db=brew");      //Specify request destination
