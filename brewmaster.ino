@@ -75,15 +75,15 @@ void readSensor(void* parameter) {
     sensors.requestTemperatures(); 
     temperature = sensors.getTempCByIndex(0);
   
-    if(temperature > 30.2 && burner_on) { 
+    if(temperature > 50.2 && burner_on) { 
       digitalWrite(BURNER_PIN, LOW);
       burner_on = false;
-      client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'Off' }");
+      client.publish("domoticz/in", "{\"command\": \"switchlight\", \"idx\": 46, \"switchcmd\": \"Off\" }");
     }
-    if(temperature < 29.8 && !burner_on) {
+    if(temperature < 49.8 && !burner_on) {
       digitalWrite(BURNER_PIN, HIGH);
       burner_on = true;
-      client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'On' }");
+      client.publish("domoticz/in", "{\"command\": \"switchlight\", \"idx\": 46, \"switchcmd\": \"On\" }");
     }
 
     vTaskDelay(10 / portTICK_RATE_MS); //Measure temperature every 10ms
