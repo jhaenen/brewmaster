@@ -1,5 +1,4 @@
 #include <WiFi.h>
-#include <WiFiMulti.h>
 #include <HTTPClient.h>
 
 #include <OneWire.h>
@@ -8,9 +7,10 @@
 #define MOC3021_PIN 2
 #define TEMP_PIN    4
 
-WiFiMulti wifi;
-
 float temperature = 0;
+
+const char* ssid = "WM1";
+const char* password =  "WollemaN";
 
 OneWire oneWire(TEMP_PIN);
 DallasTemperature sensors(&oneWire);
@@ -25,13 +25,14 @@ void setup() {
 
   pinMode(MOC3021_PIN, OUTPUT);
   
-  wifi.addAP("WM1", "WollemaN");   //WiFi connection
+  WiFi.begin(ssid, password);   //WiFi connection
 
-  Serial.println("Waiting for connection");
-  while (wifi.run() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+  Serial.print("Waiting for connection");
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for the WiFI connection completion
+    Serial.print(".");
     delay(500);
   }
-  Serial.println("Connected");
+  Serial.println(" Connected");
 
   xTaskCreate(readSensor, "Read temp", 1024, NULL, 1, NULL);
   xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 2, NULL);
@@ -52,7 +53,7 @@ void readSensor(void* parameter) {
 
 void sendTemperature(void* parameter) {
   while(1) {
-    if(wifi.run()== WL_CONNECTED){   //Check WiFi connection status
+    if(WiFi.status() == WL_CONNECTED){   //Check WiFi connection status
       HTTPClient http;    //Declare object of class HTTPClient
       
       http.begin("http://192.168.2.250:8086/write?db=brew");      //Specify request destination
