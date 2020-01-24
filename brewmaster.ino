@@ -6,7 +6,7 @@
 
 #include <PubSubClient.h>
 
-#define MOC3021_PIN 2
+#define TOGGLE_PIN  2
 #define TEMP_PIN    4
 #define mqtt_server "192.168.2.250"
 
@@ -36,7 +36,7 @@ void setup() {
   Serial.begin(115200);                                  //Serial connection
   sensors.begin();
 
-  pinMode(MOC3021_PIN, OUTPUT);
+  pinMode(TOGGLE_PIN, OUTPUT);
   
   WiFi.begin(ssid, password);   //WiFi connection
 
@@ -71,11 +71,11 @@ void readSensor(void* parameter) {
     temperature = sensors.getTempCByIndex(0);
   
     if(temperature > 30.2) { 
-      digitalWrite(MOC3021_PIN, LOW);
+      digitalWrite(TOGGLE_PIN, LOW);
       client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'On' }");
     }
     if(temperature < 29.8) {
-      digitalWrite(MOC3021_PIN, HIGH);
+      digitalWrite(TOGGLE_PIN, HIGH);
       client.publish("domoticz/in", "{'command': 'switchlight', 'idx': 49, 'switchcmd': 'Off' }");
     }
 
