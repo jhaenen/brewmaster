@@ -4,6 +4,7 @@
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
+
 #include <PubSubClient.h>
 
 #define MOC3021_PIN 2
@@ -11,6 +12,11 @@
 #define mqtt_server "192.168.2.250"
 
 WiFiMulti wifi;
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+const char* ssid = "WM1";
+const char* password = "WollemaN";
 
 float temperature = 0;
 
@@ -34,7 +40,7 @@ void setup() {
 
   pinMode(MOC3021_PIN, OUTPUT);
   
-  wifi.addAP("WM1", "WollemaN");   //WiFi connection
+  wifi.addAP(ssid, password);   //WiFi connection
 
   Serial.println("Waiting for connection");
   while (wifi.run() != WL_CONNECTED) {  //Wait for the WiFI connection completion
@@ -42,10 +48,26 @@ void setup() {
   }
   Serial.println("Connected");
 
+  WiFi.begin(ssid, password); // Connect to WiFi
+ 
+  // while wifi not connected yet, print '.'
+  // then after it connected, get out of the loop
+  while (WiFi.status() != WL_CONNECTED) {
+     delay(500);
+     Serial.print(".");
+
+   // Verbonden.
+  Serial.println("OK!");
+  
+  // IP adres.
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+ 
   xTaskCreate(readSensor, "Read temp", 1024, NULL, 1, NULL);
   xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 2, NULL);
   
-}
+  }
+} 
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
