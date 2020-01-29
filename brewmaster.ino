@@ -1,3 +1,5 @@
+#include <PID_v1.h>
+
 #include <WiFi.h>
 #include <HTTPClient.h>
 
@@ -16,7 +18,9 @@ PubSubClient client(espClient);
 const char* ssid = "WM1";
 const char* password = "WollemaN";
 
-float temperature = 0;
+double targetTemperature, temperature, outputPID;
+
+PID myPID(&temperature, &outputPID, &targetTemperature, 2, 5, 1, DIRECT);
 
 bool burner_on = false;
 
