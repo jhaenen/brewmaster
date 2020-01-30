@@ -35,8 +35,9 @@ void setup() {
   Serial.println(" Connected");
 
   xTaskCreate(readSensor, "Read temp", 1024, NULL, 1, NULL);
-  xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 2, NULL);
-  
+  xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 0, NULL);
+
+  vTaskStartScheduler(); 
 }
 
 void readSensor(void* parameter) {
