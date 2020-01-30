@@ -57,13 +57,16 @@ void setup() {
   Serial.println(WiFi.localIP());
  
   xTaskCreate(readSensor, "Read temp", 1024, NULL, 1, NULL);
-  xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 2, NULL);
-} 
+  xTaskCreate(sendTemperature, "Send temp", 2048, NULL, 0, NULL);
+
+  vTaskStartScheduler(); 
+}
 
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+
   for (int i = 0; i < length; i++) {
     Serial.print((char)payload[i]);
   }
